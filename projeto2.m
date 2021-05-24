@@ -28,6 +28,7 @@ figure('Name', 'Background'),imshow(uint8(bkg));
 
 %% Bounding boxes
 figure
+densityValues = zeros([size(img, 1) size(img, 2)])
 for f=1:nFrames
     f
     
@@ -48,16 +49,21 @@ for f=1:nFrames
     imshow(img)
     
     % Plot results
+    hold on;
     for i=1:num
         if regionProps(i).Area > 100
             rectangle('Position',[regionProps(i).BoundingBox(1),regionProps(i).BoundingBox(2),regionProps(i).BoundingBox(3),regionProps(i).BoundingBox(4)],...
             'EdgeColor','r','LineWidth',2 )
+             plot(regionProps(i).Centroid(1),regionProps(i).Centroid(2),'ro');
+             center_y = fix(regionProps(i).Centroid(1));
+             center_x = fix(regionProps(i).Centroid(2));
+             densityValues(center_x, center_y) = 1 + densityValues(center_x, center_y);
         end    
     end
     
     %Plot grand truth 
-    currentFrame = grandTruth.getElementsByTagName('frame').item(f)
-    gt_object = currentFrame.getElementsByTagName('object')
+    currentFrame = grandTruth.getElementsByTagName('frame').item(f);
+    gt_object = currentFrame.getElementsByTagName('object');
     
     if gt_object.getLength() > 0
         for i = 0:(gt_object.getLength()-1)
@@ -67,13 +73,24 @@ for f=1:nFrames
             gt_xc = str2double(gt_object.item(i).getElementsByTagName('box').item(0).getAttribute('xc'));
             gt_yc = str2double(gt_object.item(i).getElementsByTagName('box').item(0).getAttribute('yc'));
 
-            rectangle('Position',[gt_xc, gt_yc, gt_w, gt_h], 'EdgeColor','g','LineWidth', 2)
+            rectangle('Position',[gt_xc, gt_yc, gt_w, gt_h], 'EdgeColor','g','LineWidth', 2);
         end
     end
-    
-    grandTruth.getElementsByTagName('frame').item(0)
-    pause(0.2)
+    hold off;
+  
+%     pause(0.2)
 end
+%% Heatmap 
+heatmap(imgaussfilt(densityValues,5));
+ax = gca;
+ax.XDisplayLabels = nan(size(ax.XDisplayData));
+ax.YDisplayLabels = nan(size(ax.YDisplayData));
+colormap hot;
+grid off;
+hold on
+imh = image(img);
+uistack(imh, 'bottom');
+hold off
 %% Simple algorithm 
 close all
 
