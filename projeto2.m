@@ -29,24 +29,29 @@ figure('Name', 'Background'),imshow(uint8(bkg));
 %% Bounding boxes
 figure
 densityValues = zeros([size(img, 1) size(img, 2)])
-for f=1:nFrames
+for f=2:nFrames
     f
     
-%     figure('Name', 'Image Subtraction');
+    % Simple method
+%     frame1 = imread(['Crowd_PETS09/S2/L1/Time_12-34/View_001/' frames(f-1).name]);
+%     frame2 = imread(['Crowd_PETS09/S2/L1/Time_12-34/View_001/' frames(f).name]);
+%     bw = imclose(abs(rgb2gray(frame2)-rgb2gray(frame1)), strel('disk',1));
+    
+    % Remove estimated background
     frameName = ['Crowd_PETS09/S2/L1/Time_12-34/View_001/' frames(f).name];
-    img = imread(frameName);
-    newImg = imsubtract(uint8(bkg), img);
-%     imshow(newImg); drawnow
+    frame1 = imread(frameName);
+    newImg = imsubtract(uint8(bkg), frame1);
+
 
     R = newImg(:,:,1) > t;
     B = newImg(:,:,2) > t;
     G = newImg(:,:,3) > t;
     bw = imclose(R|G|B, strel('disk',3));
-%     imshow(bw)
+
     [lb num]=bwlabel(bw);
     regionProps = regionprops(lb,'centroid', 'area', 'perimeter', 'BoundingBox');
 
-    imshow(img)
+    imshow(frame1);
     
     % Plot results
     hold on;
@@ -69,16 +74,16 @@ for f=1:nFrames
         for i = 0:(gt_object.getLength()-1)
             gt_id = gt_object.item(i).getAttribute('id');
             gt_w = str2double(gt_object.item(i).getElementsByTagName('box').item(0).getAttribute('w'));
-            gt_h = str2double(gt_object.item(i).getElementsByTagName('box').item(0).getAttribute('w'));
+            gt_h = str2double(gt_object.item(i).getElementsByTagName('box').item(0).getAttribute('h'));
             gt_xc = str2double(gt_object.item(i).getElementsByTagName('box').item(0).getAttribute('xc'));
             gt_yc = str2double(gt_object.item(i).getElementsByTagName('box').item(0).getAttribute('yc'));
 
-            rectangle('Position',[gt_xc, gt_yc, gt_w, gt_h], 'EdgeColor','g','LineWidth', 2);
+            rectangle('Position',[gt_xc-gt_w/2, gt_yc-gt_h/2, gt_w, gt_h], 'EdgeColor','g','LineWidth', 2);
         end
     end
     hold off;
   
-%     pause(0.2)
+    pause(0.2);
 end
 %% Heatmap 
 heatmap(imgaussfilt(densityValues,5));
@@ -91,26 +96,6 @@ hold on
 imh = image(img);
 uistack(imh, 'bottom');
 hold off
-%% Simple algorithm 
-close all
-
-figure
-for f=120:nFrames
-    frame1 = imread(['Crowd_PETS09/S2/L1/Time_12-34/View_001/' frames(f-1).name]);
-    frame2 = imread(['Crowd_PETS09/S2/L1/Time_12-34/View_001/' frames(f).name]);
-    diff = imclose(abs(imsubtract(im2bw(frame2), im2bw(frame1))), strel('disk',1));
-    [lb num]=bwlabel(diff);
-    regionProps = regionprops(lb,'centroid', 'area', 'perimeter', 'BoundingBox');
-
-    imshow(frame1);
-    for i=1:num
-        if regionProps(i).Area > 200
-            rectangle('Position',[regionProps(i).BoundingBox(1),regionProps(i).BoundingBox(2),regionProps(i).BoundingBox(3),regionProps(i).BoundingBox(4)],...
-            'EdgeColor','r','LineWidth',2 )
-        end    
-    end
-    pause(0.2)
-end
 
 %% Motion field
 close all
