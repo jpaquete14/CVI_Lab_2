@@ -78,6 +78,7 @@ for f=2:nFrames
             gt_xc = str2double(gt_object.item(i).getElementsByTagName('box').item(0).getAttribute('xc'));
             gt_yc = str2double(gt_object.item(i).getElementsByTagName('box').item(0).getAttribute('yc'));
 
+            text(gt_xc-gt_w/2, gt_yc-gt_h/2-10, strcat('id:',string(gt_id)), 'FontSize',12, 'Color', 'g')
             rectangle('Position',[gt_xc-gt_w/2, gt_yc-gt_h/2, gt_w, gt_h], 'EdgeColor','g','LineWidth', 2);
         end
     end
@@ -92,10 +93,6 @@ ax.XDisplayLabels = nan(size(ax.XDisplayData));
 ax.YDisplayLabels = nan(size(ax.YDisplayData));
 colormap hot;
 grid off;
-hold on
-imh = image(img);
-uistack(imh, 'bottom');
-hold off
 
 %% Motion field
 close all
