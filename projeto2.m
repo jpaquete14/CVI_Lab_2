@@ -175,19 +175,22 @@ colormap hot;
 grid off;
 
 %% Show map
-
 imshow(uint8(bkg));
-hold on
 
+hold on
 for f = 1:nFrames
     for prev = previousResults{f}.'
         plot(fix(prev(2) + prev(4)/2), fix(prev(3) + prev(5)/2),'r*');
     end 
 end
+hold off;
+%% Plot errors
 
-hold off;e
+plot(errorsMemory)
+%% Plot errors ratio
+
+plot(errorsRatioMemory)
 %%
-
 % %% Motion field
 % close all
 % 
