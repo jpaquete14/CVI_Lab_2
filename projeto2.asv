@@ -89,11 +89,12 @@ for f=2:nFrames-1
                     aux = bboxOverlapRatio(regionProps(i).BoundingBox, previousRegionProps(j).BoundingBox, 'Union');
                     if aux > max
                         max = aux;
-                        maxIndex = j;  
+                        maxIndex = j;
+               
+                        
                     end
                 end
              end
-             if max = 0
              %currentBbox = [center_x, center_y, i];
              %currentBboxes = [currentBboxes; currentBbox];
         end    
