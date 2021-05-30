@@ -30,6 +30,7 @@ bkg = median(vid4D,4);
 densityValues = zeros([size(img, 1) size(img, 2)]);
 errorsMemory = zeros(1, nFrames);
 errorsRatioMemory = zeros(1, nFrames);
+colorsForId = [];
 idCounter = 1;
 overlap_ratio_t = 0.3;
 
@@ -54,6 +55,7 @@ for i=1:num
          regionsId = [regionsId, idCounter];
          regionBoundingBoxes = [regionBoundingBoxes; regionProps(i).BoundingBox];
          idCounter = idCounter + 1;
+         colorsForId = [colorsForId; [rand rand rand]];
     end    
 end
 
@@ -116,6 +118,7 @@ for f=2:nFrames-1
                 regionBoundingBoxes = [regionBoundingBoxes; regionProps(i).BoundingBox];
                 text(regionProps(i).BoundingBox(1), regionProps(i).BoundingBox(2) + regionProps(i).BoundingBox(4) + 10, strcat('id:', string(idCounter)), 'FontSize',12, 'Color', 'r')
                 idCounter = idCounter + 1;
+                colorsForId = [colorsForId; [rand rand rand]];
              end 
         end    
         
@@ -159,7 +162,8 @@ for f=2:nFrames-1
     % Plot points 
     for j = 0:min(tail, f-1)
         for prev = previousResults{f-j}.'
-            plot(fix(prev(2) + prev(4)/2), fix(prev(3) + prev(5)/2),'r*');
+            colorsForId(prev(1))
+            plot(fix(prev(2) + prev(4)/2), fix(prev(3) + prev(5)/2), 'Color', colorsForId(prev(1), :), 'Marker', '*');
         end 
     end
     
@@ -180,7 +184,7 @@ imshow(uint8(bkg));
 hold on
 for f = 1:nFrames
     for prev = previousResults{f}.'
-        plot(fix(prev(2) + prev(4)/2), fix(prev(3) + prev(5)/2),'r*');
+        plot(fix(prev(2) + prev(4)/2), fix(prev(3) + prev(5)/2), 'Color', colorsForId(prev(1), :), 'Marker', '*');
     end 
 end
 hold off;
