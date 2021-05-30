@@ -3,8 +3,8 @@ clear all, close all
 frames = dir('Crowd_PETS09/S2/L1/Time_12-34/View_001/*.jpg');    
 grandTruth = xmlread('PETS2009-S2l1.xml');
 nFrames = length(frames);
-t = 30
-tail = 5 % how much of the previous results 
+tail = 20;
+t = 30;
 step = 53;
 
 
@@ -24,7 +24,7 @@ for i=1:step:nFrames
     %pause
 end
 bkg = median(vid4D,4);
-figure('Name', 'Background'),imshow(uint8(bkg));
+% figure('Name', 'Background'),imshow(uint8(bkg));
 
 %% Setup
 densityValues = zeros([size(img, 1) size(img, 2)]);
@@ -46,8 +46,8 @@ bw = imclose(R|G|B, strel('disk',3));
 [lb num]=bwlabel(bw);
 regionProps = regionprops(lb,'centroid', 'area', 'perimeter', 'BoundingBox');
 
-regionsId = []
-regionBoundingBoxes = []
+regionsId = [];
+regionBoundingBoxes = [];
 
 for i=1:num
     if regionProps(i).Area > 100
@@ -89,7 +89,7 @@ for f=2:nFrames-1
         if regionProps(i).Area > 100
             rectangle('Position',[regionProps(i).BoundingBox(1),regionProps(i).BoundingBox(2),regionProps(i).BoundingBox(3),regionProps(i).BoundingBox(4)],...
             'EdgeColor','r','LineWidth',2 )
-             plot(regionProps(i).Centroid(1),regionProps(i).Centroid(2),'ro');
+%              plot(regionProps(i).Centroid(1),regionProps(i).Centroid(2),'ro');
              center_y = fix(regionProps(i).Centroid(1));
              center_x = fix(regionProps(i).Centroid(2));
              densityValues(center_x, center_y) = 1 + densityValues(center_x, center_y);
@@ -110,11 +110,11 @@ for f=2:nFrames-1
              if maxId > 0
                 regionsId = [regionsId, maxId];
                 regionBoundingBoxes = [regionBoundingBoxes; regionProps(i).BoundingBox];
-                text(regionProps(i).BoundingBox(1)-regionProps(i).BoundingBox(3)/2, regionProps(i).BoundingBox(2)-regionProps(i).BoundingBox(4)/2-10, strcat('id:', string(maxId)), 'FontSize',12, 'Color', 'r')
+                text(regionProps(i).BoundingBox(1), regionProps(i).BoundingBox(2), strcat('id:', string(maxId)), 'FontSize',12, 'Color', 'r')
              else
                 regionsId = [regionsId, idCounter];
                 regionBoundingBoxes = [regionBoundingBoxes; regionProps(i).BoundingBox];
-                text(regionProps(i).BoundingBox(1)-regionProps(i).BoundingBox(3)/2, regionProps(i).BoundingBox(2)-regionProps(i).BoundingBox(4)/2-10, strcat('id:', string(idCounter)), 'FontSize',12, 'Color', 'r')
+                text(regionProps(i).BoundingBox(1), regionProps(i).BoundingBox(2), strcat('id:', string(idCounter)), 'FontSize',12, 'Color', 'r')
                 idCounter = idCounter + 1;
              end 
         end    
@@ -154,7 +154,14 @@ for f=2:nFrames-1
     errorsRatioMemory(f) = error/(comparisions+1); % +1 for normalizatino
     
     text(0, 10, strcat('Error:', string(errorsMemory(f))), 'FontSize',14, 'Color', 'r')
-    text(0, 30, strcat('Error ratio:', string(errorsRatioMemory(f))), 'FontSize',14, 'Color', 'r')
+    text(0, 30, strcat('Error ratio:', string(errorsRatioMemory(f))), 'FontSize', 14, 'Color', 'r')
+    
+    % Plot points 
+    for j = 0:min(tail, f-1)
+        for prev = previousResults{f-j}.'
+            plot(fix(prev(2) + prev(4)/2), fix(prev(3) + prev(5)/2),'r*');
+        end 
+    end
     
     hold off;
     pause(0.5);
@@ -166,6 +173,20 @@ ax.XDisplayLabels = nan(size(ax.XDisplayData));
 ax.YDisplayLabels = nan(size(ax.YDisplayData));
 colormap hot;
 grid off;
+
+%% Show map
+
+imshow(uint8(bkg));
+hold on
+
+for f = 1:nFrames
+    for prev = previousResults{f}.'
+        plot(fix(prev(2) + prev(4)/2), fix(prev(3) + prev(5)/2),'r*');
+    end 
+end
+
+hold off;
+%%
 
 % %% Motion field
 % close all
