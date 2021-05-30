@@ -4,6 +4,7 @@ frames = dir('Crowd_PETS09/S2/L1/Time_12-34/View_001/*.jpg');
 grandTruth = xmlread('PETS2009-S2l1.xml');
 nFrames = length(frames);
 t = 30
+tail = 5 % how much of the previous results 
 %figure,
 step = 53;
 maxArray = 5;
@@ -35,6 +36,37 @@ xBboxes = containers.Map('KeyType','char','ValueType','numeric')
 yBboxes = containers.Map('KeyType','char','ValueType','numeric')
 indexBboxes = containers.Map('KeyType','char','ValueType','numeric')
 currentBboxes = [];
+
+% Have a counter with ids 
+% idCOunter = 1 
+
+% frameName = ['Crowd_PETS09/S2/L1/Time_12-34/View_001/' frames(f).name];
+% frame = imread(frameName);
+% newImg = imsubtract(uint8(bkg), frame);
+% 
+% 
+% R = newImg(:,:,1) > t;
+% B = newImg(:,:,2) > t;
+% G = newImg(:,:,3) > t;
+% bw = imclose(R|G|B, strel('disk',3));
+
+
+% array_of_results = {
+%   id,
+%   bounding_box,   
+% } 
+%     [lb num]=bwlabel(bw);
+%     regionProps = regionprops(lb,'centroid', 'area', 'perimeter', 'BoundingBox');
+% 
+%     for i=1:num
+%         if regionProps(i).Area > 100
+            
+%     Assign the ids to bounding boxes
+% end
+% end
+
+
+
 for f=2:nFrames-1
     f
     
@@ -84,6 +116,7 @@ for f=2:nFrames-1
              
              max = 0;
              maxIndex;
+%              array_of_results (time frame) 
              for j=1:old_num
                 if previousRegionProps(j).Area > 100
                     aux = bboxOverlapRatio(regionProps(i).BoundingBox, previousRegionProps(j).BoundingBox, 'Union');
@@ -93,10 +126,22 @@ for f=2:nFrames-1
                     end
                 end
              end
-             if max = 0
+%              if max = 0
+                 % time frame + 1 
+%                 array = {
+%                  id =   if (new) idCOunter++ else maxId
+%                  bounding box 
+%                 }
+                 
              %currentBbox = [center_x, center_y, i];
              %currentBboxes = [currentBboxes; currentBbox];
         end    
+        
+        % append new array with {id, boundingbox) 
+        
+        % take last $tail + 1 array_of_results and plot the centroids but only
+        % for the ones that are still visible  (the ids tha are in current
+        % arrat with {id, boundingbox) 
     end
     
     
@@ -127,6 +172,17 @@ for f=2:nFrames-1
             %calculate error
             if bboxOverlapRatio()
             
+                %              array_of_results (time frame) 
+%              for j=1:old_num
+%                 if previousRegionProps(j).Area > 100
+%                     aux = bboxOverlapRatio(regionProps(i).BoundingBox, previousRegionProps(j).BoundingBox, 'Union');
+%                     if aux > max
+%                         max = aux;
+%                         maxIndex = j;  
+%                     end
+%                 end
+%              end to compute error erroArray -> nFrames 
+             
             %add bbox to dictionaries
             if isKey(, gt_id) == 1
                 dict(gt_id) = [dict(gt_id) currentBboxes{minIndex}(1:end-1)]
