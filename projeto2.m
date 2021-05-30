@@ -28,8 +28,8 @@ bkg = median(vid4D,4);
 
 %% Setup
 densityValues = zeros([size(img, 1) size(img, 2)]);
-errorsMemory = zeros(nFrames);
-errorsRatioMemory = zeros(nFrames);
+errorsMemory = zeros(1, nFrames);
+errorsRatioMemory = zeros(1, nFrames);
 idCounter = 1;
 overlap_ratio_t = 0.3;
 
@@ -110,11 +110,11 @@ for f=2:nFrames-1
              if maxId > 0
                 regionsId = [regionsId, maxId];
                 regionBoundingBoxes = [regionBoundingBoxes; regionProps(i).BoundingBox];
-                text(regionProps(i).BoundingBox(1), regionProps(i).BoundingBox(2), strcat('id:', string(maxId)), 'FontSize',12, 'Color', 'r')
+                text(regionProps(i).BoundingBox(1), regionProps(i).BoundingBox(2) + regionProps(i).BoundingBox(4) + 10, strcat('id:', string(maxId)), 'FontSize',12, 'Color', 'r')
              else
                 regionsId = [regionsId, idCounter];
                 regionBoundingBoxes = [regionBoundingBoxes; regionProps(i).BoundingBox];
-                text(regionProps(i).BoundingBox(1), regionProps(i).BoundingBox(2), strcat('id:', string(idCounter)), 'FontSize',12, 'Color', 'r')
+                text(regionProps(i).BoundingBox(1), regionProps(i).BoundingBox(2) + regionProps(i).BoundingBox(4) + 10, strcat('id:', string(idCounter)), 'FontSize',12, 'Color', 'r')
                 idCounter = idCounter + 1;
              end 
         end    
@@ -185,7 +185,7 @@ for f = 1:nFrames
     end 
 end
 
-hold off;
+hold off;e
 %%
 
 % %% Motion field
