@@ -6,6 +6,7 @@ nFrames = length(frames);
 tail = 20;
 t = 30;
 step = 53;
+speed = 0.1;
 
 
 frameName = ['Crowd_PETS09/S2/L1/Time_12-34/View_001/' frames(1).name];
@@ -109,7 +110,7 @@ for f=2:nFrames-1
                  end
              end
              
-             if maxId > 0
+             if (maxId > 0) & (~ismember(maxId, regionsId))
                 regionsId = [regionsId, maxId];
                 regionBoundingBoxes = [regionBoundingBoxes; regionProps(i).BoundingBox];
                 text(regionProps(i).BoundingBox(1), regionProps(i).BoundingBox(2) + regionProps(i).BoundingBox(4) + 10, strcat('id:', string(maxId)), 'FontSize',12, 'Color', 'r')
@@ -162,15 +163,15 @@ for f=2:nFrames-1
     % Plot points 
     for j = 0:min(tail, f-1)
         for prev = previousResults{f-j}.'
-            colorsForId(prev(1))
             plot(fix(prev(2) + prev(4)/2), fix(prev(3) + prev(5)/2), 'Color', colorsForId(prev(1), :), 'Marker', '*');
         end 
     end
     
     hold off;
-    pause(0.5);
+    pause(speed);
 end
 %% Heatmap 
+hold off;
 heatmap(imgaussfilt(densityValues,5));
 ax = gca;
 ax.XDisplayLabels = nan(size(ax.XDisplayData));
