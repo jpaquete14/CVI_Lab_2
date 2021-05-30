@@ -172,12 +172,18 @@ for f=2:nFrames-1
 end
 %% Heatmap 
 hold off;
+figure
+
+subplot(1,2, 1)
 heatmap(imgaussfilt(densityValues,5));
 ax = gca;
 ax.XDisplayLabels = nan(size(ax.XDisplayData));
 ax.YDisplayLabels = nan(size(ax.YDisplayData));
 colormap hot;
 grid off;
+
+subplot(1,2,2)
+imshow(uint8(bkg));
 
 %% Show map
 imshow(uint8(bkg));
