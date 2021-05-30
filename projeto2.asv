@@ -7,7 +7,6 @@ t = 30
 tail = 5 % how much of the previous results 
 %figure,
 step = 53;
-maxArray = 5;
 
 
 frameName = ['Crowd_PETS09/S2/L1/Time_12-34/View_001/' frames(1).name];
@@ -32,38 +31,37 @@ figure('Name', 'Background'),imshow(uint8(bkg));
 %% Bounding boxes
 figure
 densityValues = zeros([size(img, 1) size(img, 2)])
-xBboxes = containers.Map('KeyType','char','ValueType','numeric')
-yBboxes = containers.Map('KeyType','char','ValueType','numeric')
-indexBboxes = containers.Map('KeyType','char','ValueType','numeric')
-currentBboxes = [];
 
 % Have a counter with ids 
-% idCOunter = 1 
+idCounter = 1 
 
-% frameName = ['Crowd_PETS09/S2/L1/Time_12-34/View_001/' frames(f).name];
-% frame = imread(frameName);
-% newImg = imsubtract(uint8(bkg), frame);
-% 
-% 
-% R = newImg(:,:,1) > t;
-% B = newImg(:,:,2) > t;
-% G = newImg(:,:,3) > t;
-% bw = imclose(R|G|B, strel('disk',3));
+oldFrameName = ['Crowd_PETS09/S2/L1/Time_12-34/View_001/' frames(1).name];
+oldFrame = imread(olfFrameName);
+oldImg = imsubtract(uint8(bkg), oldFrame);
 
-
-% array_of_results = {
-%   id,
-%   bounding_box,   
-% } 
-%     [lb num]=bwlabel(bw);
-%     regionProps = regionprops(lb,'centroid', 'area', 'perimeter', 'BoundingBox');
-% 
-%     for i=1:num
-%         if regionProps(i).Area > 100
+ 
+ R = oldImg(:,:,1) > t;
+ B = oldImg(:,:,2) > t;
+ G = oldImg(:,:,3) > t;
+ oldBw = imclose(R|G|B, strel('disk',3));
+ arrays = [];
+ array_of_results = []; 
+     [oldLb oldNum]=bwlabel(oldBw);
+     oldRegionProps = regionprops(oldLb,'centroid', 'area', 'perimeter', 'BoundingBox');
+ 
+     for i=1:num
+        if oldRegionProps(i).Area > 100
+            array_of_results(:, :, idCounter) = [idCounter oldRegionProps(i).BoundingBox];
+            idCounter = idCounter+1;
+        end
+     end
+  arrays(:,:,:,1) = array_of_results;
             
 %     Assign the ids to bounding boxes
 % end
 % end
+
+arrays = {arrays array_of_results};
 
 
 
@@ -80,9 +78,9 @@ for f=2:nFrames-1
     frame = imread(frameName);
     newImg = imsubtract(uint8(bkg), frame);
     
-    previousFrameName = ['Crowd_PETS09/S2/L1/Time_12-34/View_001/' frames(f-1).name];
-    previousFrame = imread(previousFrameName);
-    previousImg = imsubtract(uint8(bkg), previousFrame);
+    %previousFrameName = ['Crowd_PETS09/S2/L1/Time_12-34/View_001/' frames(f-1).name];
+    %previousFrame = imread(previousFrameName);
+    %previousImg = imsubtract(uint8(bkg), previousFrame);
 
 
     R = newImg(:,:,1) > t;
@@ -90,23 +88,18 @@ for f=2:nFrames-1
     G = newImg(:,:,3) > t;
     bw = imclose(R|G|B, strel('disk',3));
     
-    old_R = previousImg(:,:,1) > t;
-    old_B = previousImg(:,:,2) > t;
-    old_G = newImg(:,:,3) > t;
-    old_bw = imclose(R|G|B, strel('disk',3));
-
-
     [lb num]=bwlabel(bw);
-    [old_lb old_num]=bwlabel(old_bw);
     
     regionProps = regionprops(lb,'centroid', 'area', 'perimeter', 'BoundingBox');
-    previousRegionProps = regionprops(old_lb,'centroid', 'area', 'perimeter', 'BoundingBox');
-    imshow(frame1);
+    imshow(frame);
     
     % Plot results
     hold on;
+    regionCounter=0;
     for i=1:num
+        array_of_results = [];
         if regionProps(i).Area > 100
+            regionCounter = regionCounter+1;
             rectangle('Position',[regionProps(i).BoundingBox(1),regionProps(i).BoundingBox(2),regionProps(i).BoundingBox(3),regionProps(i).BoundingBox(4)],...
             'EdgeColor','r','LineWidth',2 )
              %plot(regionProps(i).Centroid(1),regionProps(i).Centroid(2),'ro');
@@ -116,18 +109,23 @@ for f=2:nFrames-1
              
              max = 0;
              maxIndex;
+             old_array_of_results = arrays(:,:,:,f-1)
 %              array_of_results (time frame) 
-             for j=1:old_num
-                if previousRegionProps(j).Area > 100
-                    aux = bboxOverlapRatio(regionProps(i).BoundingBox, previousRegionProps(j).BoundingBox, 'Union');
-                    if aux > max
-                        max = aux;
-                        maxIndex = j;  
-                    end
+             for j=1:length(old_array_of_results)
+                item = old_array_of_results(:,:,j)
+                bbox = item(2)
+                id = item(1)
+                aux = bboxOverlapRatio(regionProps(i).BoundingBox, bbox, 'Union');
+                if aux > max
+                    max = aux;
+                    maxIndex = id;  
                 end
              end
-             if max = 0
-                 % time frame + 1 
+             if max == 0
+                 maxIndex = idCounter;
+                 idCounter = idCounter+1;
+             end
+             array_of_results(:,:,regionCounter) = [maxIndex regionProps(i).BoundingBox];
 %                 array = {
 %                  id =   if (new) idCOunter++ else maxId
 %                  bounding box 
@@ -136,9 +134,16 @@ for f=2:nFrames-1
              %currentBbox = [center_x, center_y, i];
              %currentBboxes = [currentBboxes; currentBbox];
         end    
-        
+        arrays(:,:,:,f) = array_of_results;
         % append new array with {id, boundingbox) 
         
+        %print path
+        for i=1:tail
+            array = arrays(:,:,:,end-i);
+            for j=1:length(array)
+                %plot(array{2}(1),regionProps(i).Centroid(2),'ro');
+            end
+        end
         % take last $tail + 1 array_of_results and plot the centroids but only
         % for the ones that are still visible  (the ids tha are in current
         % arrat with {id, boundingbox) 
@@ -163,7 +168,7 @@ for f=2:nFrames-1
             %find closest point in current frame
             min = 1000;
             minIndex = 0;
-            for i=1:length(currentBboxes)
+            for i=1:length(array(:,:,f))
                 if norm([gt_xc gt_yc] - [xBboxes(i) yBboxes(i)]) < min
                     minIndex = i;
                 end
